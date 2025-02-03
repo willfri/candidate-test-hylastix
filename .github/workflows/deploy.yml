@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 env:
-  TF_VAR_location: ${{ env.LOCATION }}
-  TF_VAR_subscription_id: ${{ env.SUBSCRIPTION_ID }}
+  TF_VAR_location: ${{ vars.LOCATION }}
+  TF_VAR_subscription_id: ${{ vars.SUBSCRIPTION_ID }}
 
 jobs:
   terraform_storage_backend:
@@ -36,6 +36,12 @@ jobs:
 
       - name: Terraform apply
         run: terraform apply -no-color -auto-approve
+
+      - name: Save terraform state
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-state
+          path: terraform.tfstate
 
       - name: Get storage account name
         id: tfstate_storage_account_name
