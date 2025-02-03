@@ -43,8 +43,11 @@ jobs:
 
       - name: Load terraform state
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: terraform-state
+          github-token: ${{ secrets.GH_PAT }}
+          run-id: ${{ vars.TFSTATE_RUN_ID }}
 
       - name: Terraform apply
         run: terraform apply -no-color -auto-approve
@@ -54,6 +57,11 @@ jobs:
         with:
           name: terraform-state
           path: terraform.tfstate
+
+      - name: Persist tfstate-run-id in repository
+        run: gh variable set TFSTATE_RUN_ID -b "${{ github.run_id }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get storage account name
         id: tfstate_storage_account_name
