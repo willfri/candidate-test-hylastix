@@ -56,7 +56,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-state
-          path: terraform.tfstate
+          path: terraform/helpers/backend_setup/terraform.tfstate
 
       - name: Persist tfstate-run-id in repository
         run: gh variable set TFSTATE_RUN_ID -b "${{ github.run_id }}"
