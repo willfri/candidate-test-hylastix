@@ -1,0 +1,91 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+
+env:
+  TF_VAR_location: ${{ env.LOCATION }}
+  TF_VAR_subscription_id: ${{ env.SUBSCRIPTION_ID }}
+
+jobs:
+  terraform_storage_backend:
+    name: Terraform storage backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform/helpers/backend_setup
+
+    outputs:
+      TFSTATE_STORAGE_ACCOUNT_NAME: ${{ steps.tfstate_storage_account_name.outputs.TFSTATE_STORAGE_ACCOUNT_NAME }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt
+        run: terraform fmt -check
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Terraform apply
+        run: terraform apply -no-color -auto-approve
+
+      - name: Get storage account name
+        id: tfstate_storage_account_name
+        run: |
+          TFSTATE_STORAGE_ACCOUNT_NAME=$(terraform output -raw tfstate_storage_account_name)
+          echo "TFSTATE_STORAGE_ACCOUNT_NAME=$TFSTATE_STORAGE_ACCOUNT_NAME" >> $GITHUB_OUTPUT
+
+  terraform_infrastructure:
+    name: Terraform infrastructure
+    runs-on: ubuntu-latest
+    needs: terraform_storage_backend
+    defaults:
+      run:
+        working-directory: ./terraform
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform fmt
+        run: terraform fmt -check
+
+      - name: Terraform init
+        run: terraform init -backend-config="storage_account_name=${{ needs.terraform_storage_backend.outputs.TFSTATE_STORAGE_ACCOUNT_NAME }}"
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Terraform apply
+        run: terraform apply -no-color -auto-approve
+
+      - name: Get vm public ip address
+        run: |
+          VM_PUBLIC_IP_ADDRESS=$(terraform output -raw vm_public_ip_address)
+          echo "VM_PUBLIC_IP_ADDRESS=$VM_PUBLIC_IP_ADDRESS" >> $GITHUB_ENV
+
+      - name: Persist vm public ip address as secret in repository
+        run: gh secret set VM_PUBLIC_IP_ADDRESS -b "${{ env.VM_PUBLIC_IP_ADDRESS }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get vm password
+        run: |
+          VM_PASSWORD=$(terraform output -raw vm_password)
+          echo "VM_PASSWORD=$VM_PASSWORD" >> $GITHUB_ENV
+
+      - name: Persist vm password as secret in repository
+        run: gh secret set VM_PASSWORD -b "${{ env.VM_PASSWORD }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
