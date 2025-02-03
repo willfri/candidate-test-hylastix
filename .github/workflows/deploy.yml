@@ -70,6 +70,11 @@ jobs:
           TFSTATE_STORAGE_ACCOUNT_NAME=$(terraform output -raw tfstate_storage_account_name)
           echo "TFSTATE_STORAGE_ACCOUNT_NAME=$TFSTATE_STORAGE_ACCOUNT_NAME" >> $GITHUB_OUTPUT
 
+      - name: Persist tfstate storage account name in repository
+        run: gh secret set TFSTATE_STORAGE_ACCOUNT_NAME -b "${{ steps.terraform_storage_backend.outputs.TFSTATE_STORAGE_ACCOUNT_NAME }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+
   terraform_infrastructure:
     name: Terraform infrastructure
     runs-on: ubuntu-latest

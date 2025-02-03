@@ -33,7 +33,7 @@ jobs:
         run: terraform fmt -check
 
       - name: Terraform init
-        run: terraform init -backend-config="storage_account_name=${{ needs.terraform_storage_backend.outputs.TFSTATE_STORAGE_ACCOUNT_NAME }}"
+        run: terraform init -backend-config="storage_account_name=${{ secrets.TFSTATE_STORAGE_ACCOUNT_NAME }}"
 
       - name: Terraform validate
         run: terraform validate -no-color
@@ -53,6 +53,11 @@ jobs:
 
       - name: Delete vm password secret from repository
         run: gh secret delete VM_PASSWORD
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Delete tfstate storage account name secret from repository
+        run: gh secret delete TFSTATE_STORAGE_ACCOUNT_NAME
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
