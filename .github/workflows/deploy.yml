@@ -61,7 +61,7 @@ jobs:
       - name: Persist tfstate-run-id in repository
         run: gh variable set TFSTATE_RUN_ID -b "${{ github.run_id }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Get storage account name
         id: tfstate_storage_account_name
@@ -104,7 +104,7 @@ jobs:
       - name: Persist vm public ip address as secret in repository
         run: gh secret set VM_PUBLIC_IP_ADDRESS -b "${{ env.VM_PUBLIC_IP_ADDRESS }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Get vm password
         run: |
@@ -114,4 +114,4 @@ jobs:
       - name: Persist vm password as secret in repository
         run: gh secret set VM_PASSWORD -b "${{ env.VM_PASSWORD }}"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}

@@ -52,17 +52,17 @@ jobs:
       - name: Delete tfstate-run-id from repository
         run: gh variable delete TFSTATE_RUN_ID
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Delete vm public ip address secret from repository
         run: gh secret delete VM_PUBLIC_IP_ADDRESS
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Delete vm password secret from repository
         run: gh secret delete VM_PASSWORD
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
 
   terraform_storage_backend:
     name: Terraform storage backend
