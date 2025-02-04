@@ -29,4 +29,5 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
           PUBLIC_IP_ADDRESS: ${{ secrets.VM_PUBLIC_IP_ADDRESS }}
+          KEYCLOAK_ADMIN_PASSWORD: ${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
         run: ansible-playbook -i testing candidate-test-vms.yml -u azureuser --extra-vars "ansible_password=${{ secrets.VM_PASSWORD }}"
