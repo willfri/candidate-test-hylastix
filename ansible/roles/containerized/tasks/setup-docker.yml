@@ -25,6 +25,7 @@
       - docker-compose-plugin
 
 - name: Create docker directory
+  become: true
   ansible.builtin.file:
     state: directory
     path: /opt/docker
