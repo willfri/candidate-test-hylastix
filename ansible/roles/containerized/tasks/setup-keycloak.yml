@@ -64,7 +64,7 @@
   ignore_errors: true
   community.docker.docker_container_exec:
     container: keycloak
-    command: /bin/bash -c "sh kcreg.sh create -s clientId=nginx2 -s 'redirectUris=[\"https://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/*\",\"http://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/*\"]' -s clientAuthenticatorType=client-secret"
+    command: /bin/bash -c "sh kcreg.sh create -s clientId=nginx -s 'redirectUris=[\"https://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/*\",\"http://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/*\"]' -s clientAuthenticatorType=client-secret"
     chdir: /opt/keycloak/bin
 
 - name: Get client configuration
@@ -84,6 +84,8 @@
   ansible.builtin.template:
     src: ../templates/default.conf.j2
     dest: /opt/docker/nginx/conf.d/default.conf
+  notify:
+    - Restart nginx
 
 - name: Login for kcadm.sh
   become: true

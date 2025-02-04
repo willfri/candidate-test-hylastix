@@ -10,7 +10,7 @@
     state: directory
     path: /opt/docker/html
 
-- name: Create /opt/docker/nginx directory
+- name: Create /opt/docker/nginx/conf.d directory
   become: true
   ansible.builtin.file:
     state: directory
@@ -41,11 +41,11 @@
     src: ../files/index.html
     dest: /opt/docker/html/index.html
 
-# - name: Copy default.conf
-#   become: true
-#   ansible.builtin.template:
-#     src: ../templates/default.conf.j2
-#     dest: /opt/docker/nginx/conf.d/default.conf
+- name: Copy default.conf
+  become: true
+  ansible.builtin.template:
+    src: ../templates/default.conf.j2
+    dest: /opt/docker/nginx/conf.d/default.conf
 
 - name: Create key pair
   become: true
