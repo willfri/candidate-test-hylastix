@@ -79,7 +79,7 @@
   become: true
   ansible.builtin.template:
     src: ../templates/default.conf.j2
-    dest: /opt/docker/nginx/default.conf
+    dest: /opt/docker/nginx/conf.d/default.conf
 
 - name: Login for kcadm.sh
   become: true

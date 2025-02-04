@@ -14,7 +14,7 @@
   become: true
   ansible.builtin.file:
     state: directory
-    path: /opt/docker/nginx
+    path: /opt/docker/nginx/conf.d
 
 - name: Create /opt/docker/certs directory
   become: true
@@ -45,7 +45,7 @@
 #   become: true
 #   ansible.builtin.template:
 #     src: ../templates/default.conf.j2
-#     dest: /opt/docker/nginx/default.conf
+#     dest: /opt/docker/nginx/conf.d/default.conf
 
 - name: Create key pair
   become: true
@@ -90,7 +90,7 @@
       - 80:80
       - 443:443
     volumes:
-      - /opt/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/docker/nginx/conf.d/default.conf:/etc/nginx/conf.d:ro
       - /opt/docker/html:/usr/share/nginx/html:ro
       - /opt/docker/certs/server.crt:/etc/nginx/certs/server.crt:ro
       - /opt/docker/certs/server.key:/etc/nginx/certs/server.key:ro
