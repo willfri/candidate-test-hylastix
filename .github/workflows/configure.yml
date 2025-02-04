@@ -29,4 +29,4 @@ jobs:
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
           PUBLIC_IP_ADDRESS: ${{ secrets.VM_PUBLIC_IP_ADDRESS }}
-        run: ansible-playbook -i ${{ secrets.VM_PUBLIC_IP_ADDRESS }} candidate-test-vms.yml -u azureuser --extra-vars "ansible_password=${{ secrets.VM_PASSWORD }}"
+        run: ansible-playbook -i testing candidate-test-vms.yml -u azureuser --extra-vars "ansible_password=${{ secrets.VM_PASSWORD }}"
