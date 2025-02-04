@@ -1,0 +1,96 @@
+- name: Create /opt/docker/images directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /opt/docker/images
+
+- name: Create /opt/docker/html directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /opt/docker/html
+
+- name: Create /opt/docker/nginx directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /opt/docker/nginx
+
+- name: Create /opt/docker/certs directory
+  become: true
+  ansible.builtin.file:
+    state: directory
+    path: /opt/docker/certs
+
+- name: Copy Dockerfile.openresty
+  become: true
+  ansible.builtin.copy:
+    src: ../files/Dockerfile.openresty
+    dest: /opt/docker/images/Dockerfile.openresty
+
+- name: Build openresty
+  become: true
+  community.docker.docker_image_build:
+    name: openresty
+    path: /opt/docker/images/
+    dockerfile: Dockerfile.openresty
+
+- name: Copy index.html
+  become: true
+  ansible.builtin.copy:
+    src: ../files/index.html
+    dest: /opt/docker/html/index.html
+
+# - name: Copy default.conf
+#   become: true
+#   ansible.builtin.template:
+#     src: ../templates/default.conf.j2
+#     dest: /opt/docker/nginx/default.conf
+
+- name: Create key pair
+  become: true
+  ansible.builtin.openssl_privatekey:
+    state: present
+    path: /opt/docker/certs/server.key
+    size: 2048
+
+- name: Create certificate signing request
+  become: true
+  ansible.builtin.openssl_csr:
+    state: present
+    common_name: "{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}"
+    path: /opt/docker/certs/server.csr
+    privatekey_path: /opt/docker/certs/server.key
+
+- name: Create self-signed certificate
+  become: true
+  ansible.builtin.openssl_certificate:
+    state: present
+    csr_path: /opt/docker/certs/server.csr
+    path: /opt/docker/certs/server.crt
+    provider: selfsigned
+    privatekey_path: /opt/docker/certs/server.key
+
+- name: Create a network for nginx
+  become: true
+  community.docker.docker_network:
+    state: present
+    name: nginx_net
+
+- name: Setup nginx container
+  become: true
+  community.docker.docker_container:
+    state: started
+    name: nginx
+    image: openresty
+    restart_policy: always
+    networks:
+      - name: nginx_net
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /opt/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /opt/docker/html:/usr/share/nginx/html:ro
+      - /opt/docker/certs/server.crt:/etc/nginx/certs/server.crt:ro
+      - /opt/docker/certs/server.key:/etc/nginx/certs/server.key:ro

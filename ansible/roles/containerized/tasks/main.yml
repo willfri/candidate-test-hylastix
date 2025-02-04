@@ -1,0 +1,5 @@
+- ansible.builtin.include_tasks: setup-docker.yml
+
+- ansible.builtin.include_tasks: setup-nginx.yml
+
+- ansible.builtin.include_tasks: setup-keycloak.yml

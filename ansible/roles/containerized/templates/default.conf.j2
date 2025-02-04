@@ -1,0 +1,62 @@
+server {
+    listen       80 default_server;
+    server_name  _;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen       443 ssl;
+    server_name  _;
+    resolver     127.0.0.11;
+
+    ssl_certificate /etc/nginx/certs/server.crt;
+    ssl_certificate_key /etc/nginx/certs/server.key;
+
+    location /keycloak/ {
+        proxy_pass http://keycloak:8080/keycloak/;
+
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port $server_port;
+    }
+
+    location / {
+        access_by_lua_block {
+            local opts = {
+                redirect_uri_path = "/index.html",
+                accept_none_alg = true,
+                discovery = "http://keycloak:8080/keycloak/realms/master/.well-known/openid-configuration",
+                client_id = "nginx",
+                client_secret = "{{ keycloak_nginx_client_secret | default() }}",
+                redirect_uri_scheme = "https",
+                logout_path = "/logout",
+                redirect_after_logout_uri = "http://keycloak:3333/keycloak/realms/master/protocol/openid-connect/logout?redirect_uri=http://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/",
+                redirect_after_logout_with_id_token_hint = false,
+                session_contents = {id_token=true},
+                ssl_verify = "no"
+            }
+            -- call introspect for OAuth 2.0 Bearer Access Token validation
+            local res, err = require("resty.openidc").authenticate(opts)
+
+            if err then
+                ngx.status = 403
+                ngx.say(err)
+                ngx.exit(ngx.HTTP_FORBIDDEN)
+            end
+        }
+
+        root    /usr/share/nginx/html;
+    }
+
+    error_page 404 /404.html;
+        location = /404.html {
+    }
+
+    error_page 500 502 503 504 /50x.html;
+        location = /50x.html {
+    }
+}

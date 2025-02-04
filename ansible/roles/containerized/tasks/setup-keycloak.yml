@@ -1,0 +1,104 @@
+- name: Create a network for postgres
+  become: true
+  community.docker.docker_network:
+    state: present
+    name: postgres_net
+
+- name: Create a volume for postgres
+  become: true
+  community.docker.docker_volume:
+    state: present
+    name: postgres_data
+
+- name: Setup postgres container
+  become: true
+  community.docker.docker_container:
+    state: started
+    name: postgres
+    image: postgres:17-alpine
+    restart_policy: always
+    env:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: eX4mP13p455w0Rd # !!!
+    networks:
+      - name: postgres_net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+- name: Setup keycloak container
+  become: true
+  community.docker.docker_container:
+    state: started
+    name: keycloak
+    image: quay.io/keycloak/keycloak:26.1.0
+    restart_policy: always
+    command: start-dev --bootstrap-admin-username tmpadm --bootstrap-admin-password {{ lookup('ansible.builtin.env', 'KEYCLOAK_ADMIN_PASSWORD') }}
+    env:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: eX4mP13p455w0Rd # !!!
+      KC_DB_SCHEMA: public
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_RELATIVE_PATH: /keycloak
+      KC_HOSTNAME: https://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/keycloak/
+    networks:
+      - name: postgres_net
+      - name: nginx_net
+        aliases: keycloak
+
+- name: Login for kcreg.sh
+  become: true
+  community.docker.docker_container_exec:
+    container: keycloak
+    command: /bin/bash -c "sh kcreg.sh config credentials --server http://localhost:8080/keycloak/ --realm master --user tmpadm --password {{ lookup('ansible.builtin.env', 'KEYCLOAK_ADMIN_PASSWORD') }}"
+    chdir: /opt/keycloak/bin
+
+- name: Create client
+  become: true
+  ignore_errors: true
+  community.docker.docker_container_exec:
+    container: keycloak
+    command: /bin/bash -c "sh kcreg.sh create -s clientId=nginx2 -s 'redirectUris=[\"https://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/*\",\"http://{{ lookup('ansible.builtin.env', 'PUBLIC_IP_ADDRESS') }}/*\"]' -s clientAuthenticatorType=client-secret"
+    chdir: /opt/keycloak/bin
+
+- name: Get client configuration
+  become: true
+  community.docker.docker_container_exec:
+    container: keycloak
+    command: /bin/bash -c "sh kcreg.sh get nginx"
+    chdir: /opt/keycloak/bin
+  register: client_configuration
+
+- name: Parse client configuration and set client secret as fact
+  ansible.builtin.set_fact:
+    keycloak_nginx_client_secret: "{{ (client_configuration.stdout | from_json).secret }}"
+
+- name: Copy default.conf
+  become: true
+  ansible.builtin.template:
+    src: ../templates/default.conf.j2
+    dest: /opt/docker/nginx/default.conf
+
+- name: Login for kcadm.sh
+  become: true
+  community.docker.docker_container_exec:
+    container: keycloak
+    command: /bin/bash -c "sh kcadm.sh config credentials --server http://localhost:8080/keycloak/ --realm master --user tmpadm --password {{ lookup('ansible.builtin.env', 'KEYCLOAK_ADMIN_PASSWORD') }}"
+    chdir: /opt/keycloak/bin
+
+- name: Create user
+  become: true
+  ignore_errors: true
+  community.docker.docker_container_exec:
+    container: keycloak
+    command: /bin/bash -c "sh kcadm.sh create users -r master -s username=user1 -s enabled=true"
+    chdir: /opt/keycloak/bin
+
+- name: Set password of user
+  become: true
+  community.docker.docker_container_exec:
+    container: keycloak
+    command: /bin/bash -c "sh kcadm.sh set-password --username user1 -p test"
+    chdir: /opt/keycloak/bin
