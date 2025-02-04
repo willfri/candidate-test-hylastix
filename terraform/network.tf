@@ -69,7 +69,7 @@ resource "azurerm_network_security_group" "nsg_candidate_test_001" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "91.7.122.141/32"
+    source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
 }
