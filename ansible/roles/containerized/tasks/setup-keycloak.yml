@@ -48,6 +48,10 @@
       - name: nginx_net
         aliases: keycloak
 
+- name: Waiting for the start of keycloak
+  ansible.builtin.wait_for:
+    timeout: 60
+
 - name: Login for kcreg.sh
   become: true
   community.docker.docker_container_exec:
