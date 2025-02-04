@@ -90,7 +90,7 @@
       - 80:80
       - 443:443
     volumes:
-      - /opt/docker/nginx/conf.d/default.conf:/etc/nginx/conf.d:ro
+      - /opt/docker/nginx/conf.d:/etc/nginx/conf.d:ro
       - /opt/docker/html:/usr/share/nginx/html:ro
       - /opt/docker/certs/server.crt:/etc/nginx/certs/server.crt:ro
       - /opt/docker/certs/server.key:/etc/nginx/certs/server.key:ro
