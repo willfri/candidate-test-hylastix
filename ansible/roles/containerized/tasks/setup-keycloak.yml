@@ -50,7 +50,7 @@
 
 - name: Waiting for the start of keycloak
   ansible.builtin.wait_for:
-    timeout: 60
+    timeout: 180
 
 - name: Login for kcreg.sh
   become: true
