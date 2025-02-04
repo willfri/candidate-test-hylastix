@@ -23,7 +23,7 @@ jobs:
 
       - name: Write inventory
         shell: bash
-        run: echo "${{ secrets.VM_PUBLIC_IP_ADDRESS }} > testing"
+        run: echo "${{ secrets.VM_PUBLIC_IP_ADDRESS }}" > testing
 
       - name: Run playbook
         env:
