@@ -2,11 +2,11 @@
 
 ## Inhaltsverzeichnis
 
-- Projektübersicht
-- Architektur
-- Komponenten
-- Verwendung
-- Mögliche Erweiterungen/Verbesserungen
+- [Projektübersicht](#projektübersicht)
+- [Architektur](#architektur)
+- [Komponenten](#komponenten)
+- [Verwendung](#verwendung)
+- [Mögliche Erweiterungen/Verbesserungen](#mögliche-erweiterungenverbesserungen)
 
 ## Projektübersicht
 
@@ -35,7 +35,7 @@ Das vorliegende Projekt implementiert eine Container-Umgebung (Docker) in einer 
 Das Projekt bietet drei Workflows, welche die notwendige Infrastruktur mittels Terraform in einen Azure Account aufbaut und abbaut sowie mittels Ansible konfiguriert.
 
 - **Deploy**: Notwendige Infrastruktur wird mittels Terraform bereitgestellt.
-- **Configure**: Ansible richtet in der bereitgestellten VM die notwendinge Software ein und konfiguriert diese so, dass diese wie der Aufgabe entsprechend, verwendet werden kann.
+- **Configure**: Ansible richtet in der bereitgestellten VM die notwendinge Software ein und konfiguriert diese so, dass diese wie der Aufgabe entsprechend, verwendet werden kann. Es wird unter anderem ein neuer Client (nginx) und Nutzer (user1:test) angelegt.
 - **Destroy**: Löscht die gesamte Infrastruktur, welche durch den Deploy-Workflow erzeugt wurde.
 
 Die Workflows müssen manuell ausgeführt werden und starten nicht automatisch.
@@ -52,7 +52,7 @@ Bevor die Workflows ausgeführt werden können, müssen noch Umgebungsvariablen 
 | CLIENT_SECRET           | ✅     | Auch `password` genannt.                                                                        |
 | TENANT_ID               | ❌     |                                                                                                 |
 | GH_PAT                  | ✅     | _Github Personal access token_ mit Schreib- und Leserechten zu _Actions variables and secrets_. |
-| KEYCLOAK_ADMIN_PASSWORD | ✅     | Das Passwort des temporär erstellten Admins zur Anmeldung an der Keycloak-Oberfläche.           |
+| KEYCLOAK_ADMIN_PASSWORD | ✅     | Das Passwort des temporär erstellten Admins (tmpadm) zur Anmeldung an der Keycloak-Oberfläche.  |
 
 ## Mögliche Erweiterungen/Verbesserungen
 
@@ -70,3 +70,4 @@ Bevor die Workflows ausgeführt werden können, müssen noch Umgebungsvariablen 
 - Ansible-Tasks mit Bedingungen erweitern, sodass diese nicht immer ausgeführt werden
 - Delay nach Einrichtung des KeyCloak-Container entfernen (mögliche Lösung mittels Healh-Endpunkt)
 - Anstatt das Backend für den Remote State mittels Terraform (oder Pipeline insgesamt) zu implementieren, ist die Verwendung der Azure CLI denkbar
+- Datenbankpasswort nicht Klartext im Code ablegen
