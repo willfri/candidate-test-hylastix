@@ -6,7 +6,7 @@ resource "azurerm_virtual_network" "vnet_shared_westeu_001" {
 }
 
 resource "azurerm_subnet" "snet_shared_westeu_001" {
-  name                 = "snet_shared_westeu_001"
+  name                 = "snet-shared-westeu-001"
   resource_group_name  = azurerm_resource_group.rg_candidate_test_001.name
   virtual_network_name = azurerm_virtual_network.vnet_shared_westeu_001.name
   address_prefixes     = ["10.0.1.0/24"]
